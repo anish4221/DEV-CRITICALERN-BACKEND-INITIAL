@@ -42,6 +42,10 @@ const articleSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    // authorName: {
+    //   type: String,
+    //   required: true,
+    // },
 
     category: {
       type: mongoose.Schema.Types.ObjectId,

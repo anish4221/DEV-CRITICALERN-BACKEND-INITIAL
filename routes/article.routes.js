@@ -6,6 +6,7 @@ import {
   saveAsDraft,
   publishArticle,
   getArticleBySlug,
+  getLatestCoverArticles,
 } from "../controller/articleController.js";
 
 const router = express.Router();
@@ -28,8 +29,11 @@ router.put(
   isArticleOwner,
   publishArticle
 );
+// CoverArticle
+router.get("/coverArticle",getLatestCoverArticles );
 
 // 🔹 Get article by slug (public)
 router.get("/:slug", getArticleBySlug);
+
 
 export default router;

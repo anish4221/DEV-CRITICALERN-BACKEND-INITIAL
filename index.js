@@ -13,7 +13,7 @@ import articleCoverRoutes from './routes/articleCover.routes.js'
 dotenv.config();
 const app = express();
 app.use(cors({
-  origin: ["http://localhost:3000", "http://192.168.56.1:3000"],
+  origin: ["http://localhost:3000", "http://192.168.56.1:3000","http://localhost:3001"],
   credentials: true
 }));
 app.use(express.json());
@@ -33,13 +33,20 @@ cloudinary.config({
 
 const port = process.env.PORT;
 const mongo_url = process.env.MONGO_URL;
-try {
-    await mongoose.connect(mongo_url)
-    console.log("Connected successfully")
-} catch(error) {
-    console.log(error);
-}
 
-app.listen(port, () =>{
-    console.log(`Listening on port ${port}`)
-})
+const startServer = async () => {
+  try {
+    await mongoose.connect(mongo_url);
+    console.log("✅ Connected successfully");
+    console.log("📦 Connected to DB:", mongoose.connection.name);
+
+    app.listen(port, () => {
+      console.log(`🚀 Listening on port ${port}`);
+    });
+
+  } catch (error) {
+    console.error("❌ Mongo connection failed:", error);
+  }
+};
+
+startServer();

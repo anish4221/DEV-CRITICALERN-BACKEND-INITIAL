@@ -3,9 +3,9 @@ import ArticleContent from "../model/Article/ArticleContent.js";
 
 export const createArticle = async (req, res) => {
   try {
-    const { title, slug, description, category, tags } = req.body;
+    const { title, slug, description, category, tags,name } = req.body;
 
-    // 1️⃣ Create Article FIRST (without contentId)
+    // 1️ Create Article FIRST (without contentId)
     const article = await Article.create({
       title,
       slug,
@@ -16,13 +16,13 @@ export const createArticle = async (req, res) => {
       isPublished: false
     });
 
-    // 2️⃣ Create empty content WITH articleId
+    // 2️ Create empty content WITH articleId
     const content = await ArticleContent.create({
       articleId: article._id,
       content: { root: { children: [] } }
     });
 
-    // 3️⃣ Update article with contentId
+    // 3️ Update article with contentId
     article.contentId = content._id;
     await article.save();
 
@@ -60,6 +60,66 @@ export const publishArticle = async (req, res) => {
 };
 
 
+export const getLatestCoverArticles = async (req, res) => {
+  console.log("getLatestCoverArticles HIT 🔥");
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = 6;
+    const skip = (page - 1) * limit;
+    const articles = await Article.aggregate([
+      {
+        $sort: { createdAt: -1 }   // 1 = ascending, -1 = descending
+      },
+      // Pagination
+      {
+        $skip: skip
+      },
+      {
+        $limit: limit
+      },
+      {
+        $lookup: {
+          from: "articlecoverimages",
+          localField: "_id",
+          foreignField: "articleId",
+          as: "coverImage"
+        }
+      },
+      {
+        $unwind: {
+          path: "$coverImage",
+          preserveNullAndEmptyArrays: true
+        }
+      },
+       // 4️ Select only required fields
+      {
+        $project: {
+          _id: 0,                    // remove _id (optional)
+          title: 1,
+          slug: 1,
+          description: 1,
+          createdAt: 1,
+          image: "$coverImage.url"   // rename field
+        }
+      }
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: articles
+    });
+
+
+  } catch (error) {res.status(500).json({
+      success: false,
+      message: error.message
+  });
+}
+};
+
+
+
+
 export const getArticleBySlug = async (req, res) => {
   const { slug } = req.params;
 
@@ -69,8 +129,8 @@ export const getArticleBySlug = async (req, res) => {
     {
       $lookup: {
         from: "articlecontents",
-        localField: "contentId",
-        foreignField: "_id",
+        localField: "_id",
+        foreignField: "articleId",
         as: "content",
       },
     },
@@ -78,8 +138,8 @@ export const getArticleBySlug = async (req, res) => {
     {
       $lookup: {
         from: "articlecoverimages",
-        localField: "coverImageId",
-        foreignField: "_id",
+        localField: "_id",
+        foreignField: "articleId",
         as: "coverImage",
       },
     },
