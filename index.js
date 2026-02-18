@@ -13,7 +13,7 @@ import articleCoverRoutes from './routes/articleCover.routes.js'
 dotenv.config();
 const app = express();
 app.use(cors({
-  origin: ["http://localhost:3000", "http://192.168.56.1:3000","http://localhost:3001","https://criticalern-backend.onrender.com/"],
+  origin: true,
   credentials: true
 }));
 app.use(express.json());
