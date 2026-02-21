@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import { v2 as cloudinary } from "cloudinary";
 import cors from 'cors';
+import { rateLimit } from 'express-rate-limit'
 import authRoutes from './routes/auth.routes.js'
 import articleRoutes from './routes/article.routes.js'
 import articleContentRoutes from './routes/articleContent.routes.js'
@@ -17,6 +18,18 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
+// Global rate limiter
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 500,                                        
+  handler: (req, res, next, options) => {
+    console.log("Too many requests from IP:", req.ip);
+    res.status(options.statusCode).json({
+      success: false,
+      message: 'Too many requests, please try again later.'
+    });
+  },
+});
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/api/auth", authRoutes);
