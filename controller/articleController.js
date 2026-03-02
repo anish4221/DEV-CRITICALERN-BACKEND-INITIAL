@@ -1,5 +1,8 @@
 import Article from "../model/Article/Article.js";
 import ArticleContent from "../model/Article/ArticleContent.js";
+import ArticleCoverImage from "../model/Article/ArticleCoverImage.js";
+import ArticleImage from "../model/Article/ArticleImage.js";
+import mongoose from "mongoose";
 
 export const createArticle = async (req, res) => {
   try {
@@ -36,7 +39,6 @@ export const createArticle = async (req, res) => {
   }
 };
 
-
 export const saveAsDraft = async (req, res) => {
   const article = req.article; // middleware se aayega
 
@@ -59,10 +61,11 @@ export const publishArticle = async (req, res) => {
   res.json({ message: "Article published" });
 };
 
-
 export const getLatestCoverArticles = async (req, res) => {
-  console.log("getLatestCoverArticles HIT 🔥");
+  console.log("getLatestCoverArticles HIT ");
   try {
+    const totalArticles = await Article.countDocuments({ isPublished: true });
+    console.log("Total published articles:", totalArticles);
     const page = parseInt(req.query.page) || 1;
     const limit = 6;
     const skip = (page - 1) * limit;
@@ -117,9 +120,6 @@ export const getLatestCoverArticles = async (req, res) => {
 }
 };
 
-
-
-
 export const getArticleBySlug = async (req, res) => {
   const { slug } = req.params;
 
@@ -157,4 +157,74 @@ export const getArticleBySlug = async (req, res) => {
   ]);
 
   res.json(article[0]);
+};
+
+// export const deleteArticle = async (req, res) => {
+//   const article = req.article;
+//   await ArticleContent.findByIdAndDelete({articleId: article._id});
+//   await ArticleCoverImage.findByIdAndDelete({ articleId: article._id });
+//   await ArticleImage.deleteMany({ articleId: article._id });
+//   await Article.deleteOne({ _id: article._id });
+//   res.json({ message: "Article deleted successfully" });
+// }
+
+
+export const getArticle = async (req, res) => {
+  try {
+    const userId = new mongoose.Types.ObjectId(req.user._id);
+
+    const page = parseInt(req.query.page) || 1;
+    const limit = 4;
+    const skip = (page - 1) * limit;
+
+    // Count total articles of user
+    const total = await Article.countDocuments({ author: userId });
+
+    const articles = await Article.aggregate([
+      { $match: { author: userId } },
+
+      { $sort: { createdAt: -1 } },
+
+      { $skip: skip },
+      { $limit: limit },
+
+      {
+        $lookup: {
+          from: "articlecoverimages",
+          localField: "_id",
+          foreignField: "articleId",
+          as: "coverImage"
+        }
+      },
+      {
+        $unwind: {
+          path: "$coverImage",
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $project: {
+          _id: 1,
+          title: 1,
+          createdAt: 1,
+          isPublished: 1,
+          coverImage: "$coverImage.url"
+        }
+      }
+    ]);
+
+    res.json({
+      success: true,
+      total,
+      currentPage: page,
+      totalPages: Math.ceil(total / limit),
+      data: articles
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
 };

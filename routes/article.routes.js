@@ -7,6 +7,7 @@ import {
   publishArticle,
   getArticleBySlug,
   getLatestCoverArticles,
+  getArticle,
 } from "../controller/articleController.js";
 
 const router = express.Router();
@@ -29,6 +30,8 @@ router.put(
   isArticleOwner,
   publishArticle
 );
+
+router.get("/authArticle",authenticate,getArticle);
 // CoverArticle
 router.get("/coverArticle",getLatestCoverArticles );
 
