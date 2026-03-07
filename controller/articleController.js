@@ -160,15 +160,41 @@ export const getArticleBySlug = async (req, res) => {
   res.json(article[0]);
 };
 
-// export const deleteArticle = async (req, res) => {
-//   const article = req.article;
-//   await ArticleContent.findByIdAndDelete({articleId: article._id});
-//   await ArticleCoverImage.findByIdAndDelete({ articleId: article._id });
-//   await ArticleImage.deleteMany({ articleId: article._id });
-//   await Article.deleteOne({ _id: article._id });
-//   res.json({ message: "Article deleted successfully" });
-// }
+export const searchArticles = async (req, res) => {
+ try {
 
+    const { article } = req.query;
+
+    if (!article || article.trim() === "") {
+      return res.status(400).json({
+        success: false,
+        message: "Search query is required"
+      });
+    }
+
+    const articles = await Article.find({
+      $or: [
+        { tags: { $regex: article, $options: "i" } },
+        { title: { $regex: article, $options: "i" } },
+        { description: { $regex: article, $options: "i" } }
+      ]
+    });
+
+    res.json({
+      success: true,
+      total: articles.length,
+      data: articles
+    });
+
+  } catch (error) {
+
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+
+  }
+}
 
 export const getArticle = async (req, res) => {
   try {
