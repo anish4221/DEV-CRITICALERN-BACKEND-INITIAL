@@ -62,7 +62,6 @@ export const publishArticle = async (req, res) => {
 };
 
 export const getLatestCoverArticles = async (req, res) => {
-  console.log("getLatestCoverArticles HIT ");
   try {
     const totalArticles = await Article.countDocuments({ isPublished: true });
     console.log("Total published articles:", totalArticles);
@@ -80,6 +79,7 @@ export const getLatestCoverArticles = async (req, res) => {
       {
         $limit: limit
       },
+      { $match: { isPublished: true } },
       {
         $lookup: {
           from: "articlecoverimages",
@@ -100,6 +100,7 @@ export const getLatestCoverArticles = async (req, res) => {
           _id: 0,                    // remove _id (optional)
           title: 1,
           slug: 1,
+          isPublished: 1,
           description: 1,
           createdAt: 1,
           image: "$coverImage.url"   // rename field
@@ -172,13 +173,13 @@ export const getArticleBySlug = async (req, res) => {
 export const getArticle = async (req, res) => {
   try {
     const userId = new mongoose.Types.ObjectId(req.user._id);
+    // Count total articles of user
+    const total = await Article.countDocuments({ author: userId });
+    const publishedCount = await Article.countDocuments({ author: userId, isPublished: true });
 
     const page = parseInt(req.query.page) || 1;
     const limit = 4;
     const skip = (page - 1) * limit;
-
-    // Count total articles of user
-    const total = await Article.countDocuments({ author: userId });
 
     const articles = await Article.aggregate([
       { $match: { author: userId } },
@@ -216,6 +217,7 @@ export const getArticle = async (req, res) => {
     res.json({
       success: true,
       total,
+      publishedCount,
       currentPage: page,
       totalPages: Math.ceil(total / limit),
       data: articles
