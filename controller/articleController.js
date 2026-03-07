@@ -161,28 +161,40 @@ export const getArticleBySlug = async (req, res) => {
 };
 
 export const searchArticles = async (req, res) => {
- try {
+  try {
 
-    const { article } = req.query;
+    const { article, page = 1, limit = 5 } = req.query;
 
-    if (!article || article.trim() === "") {
-      return res.status(400).json({
-        success: false,
-        message: "Search query is required"
-      });
+    const pageNumber = parseInt(page);
+    const limitNumber = parseInt(limit);
+
+    const skip = (pageNumber - 1) * limitNumber;
+
+    let filter = {};
+
+    // If search text exists
+    if (article && article.trim() !== "") {
+      filter = {
+        $or: [
+          { tags: { $regex: article, $options: "i" } },
+          { title: { $regex: article, $options: "i" } },
+          { description: { $regex: article, $options: "i" } }
+        ]
+      };
     }
 
-    const articles = await Article.find({
-      $or: [
-        { tags: { $regex: article, $options: "i" } },
-        { title: { $regex: article, $options: "i" } },
-        { description: { $regex: article, $options: "i" } }
-      ]
-    });
+    const total = await Article.countDocuments(filter);
+
+    const articles = await Article.find(filter)
+      .skip(skip)
+      .limit(limitNumber)
+      .sort({ createdAt: -1 });
 
     res.json({
       success: true,
-      total: articles.length,
+      total,
+      currentPage: pageNumber,
+      totalPages: Math.ceil(total / limitNumber),
       data: articles
     });
 
@@ -194,7 +206,7 @@ export const searchArticles = async (req, res) => {
     });
 
   }
-}
+};
 
 export const getArticle = async (req, res) => {
   try {
