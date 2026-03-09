@@ -9,6 +9,7 @@ import articleRoutes from './routes/article.routes.js'
 import articleContentRoutes from './routes/articleContent.routes.js'
 import articleImageRoutes from './routes/articleImage.routes.js'
 import articleCoverRoutes from './routes/articleCover.routes.js'
+import contactus from './routes/contact.routes.js'
 
 
 dotenv.config();
@@ -37,6 +38,7 @@ app.use("/api/articles", articleRoutes);
 app.use("/api/articles", articleContentRoutes);
 app.use("/api/articles", articleImageRoutes);
 app.use("/api/articles", articleCoverRoutes);
+app.use("/api",contactus);
 
 cloudinary.config({
  cloud_name:process.env.CLOUD_NAME,
@@ -50,15 +52,15 @@ const mongo_url = process.env.MONGO_URL;
 const startServer = async () => {
   try {
     await mongoose.connect(mongo_url);
-    console.log("✅ Connected successfully");
-    console.log("📦 Connected to DB:", mongoose.connection.name);
+    console.log(" Connected successfully");
+    console.log(" Connected to DB:", mongoose.connection.name);
 
     app.listen(port, () => {
-      console.log(`🚀 Listening on port ${port}`);
+      console.log(` Listening on port ${port}`);
     });
 
   } catch (error) {
-    console.error("❌ Mongo connection failed:", error);
+    console.error(" Mongo connection failed:", error);
   }
 };
 
