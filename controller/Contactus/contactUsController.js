@@ -2,6 +2,7 @@ import { Contact } from "../../model/Contactus/Contact.js";
 
 export const SaveContactUs = async (req, res) => {
   try{
+    console.log(req.body);
     const {FullName, EmailAddress, PhoneNo, Message} = req.body;
 
     if(!FullName || !EmailAddress || !PhoneNo || !Message){
