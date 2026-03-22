@@ -79,7 +79,7 @@ export const getLatestCoverArticles = async (req, res) => {
       {
         $limit: limit
       },
-      { $match: { isPublished: true } },
+      // { $match: { isPublished: true } },
       {
         $lookup: {
           from: "articlecoverimages",
@@ -176,26 +176,55 @@ export const searchArticles = async (req, res) => {
     if (article && article.trim() !== "") {
       filter = {
         $or: [
-          { tags: { $regex: article, $options: "i" } },
-          { title: { $regex: article, $options: "i" } },
-          { description: { $regex: article, $options: "i" } }
+          { tags: { $regex: article,
+             $options: "i" } },
+          { title: { $regex: article,
+             $options: "i" } },
+          { description: { $regex: article,
+             $options: "i" } }
         ]
       };
     }
 
     const total = await Article.countDocuments(filter);
 
-    const articles = await Article.find(filter)
-      .skip(skip)
-      .limit(limitNumber)
-      .sort({ createdAt: -1 });
+    // const articles = await Article.find(filter)
+    //   .skip(skip)
+    //   .limit(limitNumber)
+    //   .sort({ createdAt: -1 });
+    const articles = await Article.aggregate([
+      { $match: filter },
+      { $sort: { createdAt: -1 } },
+      { $skip: skip },
+      { $limit: limitNumber },
+       {
+        $lookup: {
+          from: "articlecoverimages",
+          localField: "_id",
+          foreignField: "articleId",
+          as: "coverImage"
+        }
+      },
 
-    res.json({
+      {
+        $project: {
+          _id: 0,                    // remove _id (optional)
+          title: 1,
+          slug: 1,
+          tags: 1,
+          isPublished: 1,
+          description: 1,
+          createdAt: 1,
+          image: "$coverImage.url"   // rename field
+        }
+      }
+    ]);
+    res.status(200).json({
       success: true,
       total,
       currentPage: pageNumber,
       totalPages: Math.ceil(total / limitNumber),
-      data: articles
+      data: articles,
     });
 
   } catch (error) {
