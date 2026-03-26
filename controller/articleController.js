@@ -68,6 +68,7 @@ export const getLatestCoverArticles = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = 6;
     const skip = (page - 1) * limit;
+    const total = await Article.countDocuments();
     const articles = await Article.aggregate([
       {
         $sort: { createdAt: -1 }   // 1 = ascending, -1 = descending
@@ -104,12 +105,14 @@ export const getLatestCoverArticles = async (req, res) => {
           description: 1,
           createdAt: 1,
           image: "$coverImage.url"   // rename field
+         
         }
       }
     ]);
 
     res.status(200).json({
       success: true,
+      totalPages: Math.ceil(total / limit),
       data: articles
     });
 

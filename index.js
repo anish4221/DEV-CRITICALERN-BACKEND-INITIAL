@@ -10,7 +10,7 @@ import articleContentRoutes from './routes/articleContent.routes.js'
 import articleImageRoutes from './routes/articleImage.routes.js'
 import articleCoverRoutes from './routes/articleCover.routes.js'
 import contactus from './routes/contact.routes.js'
-
+import { requestLogger } from './middleware/logging.js';
 
 dotenv.config();
 const app = express();
@@ -20,6 +20,7 @@ app.use(cors({
 }));
 app.use(express.json());
 // Global rate limiter
+
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 500,                                        
@@ -31,6 +32,8 @@ const limiter = rateLimit({
     });
   },
 });
+app.use(limiter);
+app.use(requestLogger);
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/api/auth", authRoutes);
