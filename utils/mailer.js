@@ -1,12 +1,16 @@
-const nodemailer = require('nodemailer');
+//const nodemailer = require('nodemailer');
+import nodemailer from 'nodemailer';
 
-require('dotenv').config();
+import dotenv from 'dotenv';
+dotenv.config();
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
+export const transporter = nodemailer.createTransport({
+  host: 'smtp.zoho.in',
+  port: 587,
+  secure: false,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
 });
-module.exports = transporter;
+

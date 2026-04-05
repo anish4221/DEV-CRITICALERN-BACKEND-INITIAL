@@ -12,6 +12,7 @@ import articleCoverRoutes from './routes/articleCover.routes.js'
 import contactus from './routes/contact.routes.js'
 import { requestLogger } from './middleware/logging.js';
 
+
 dotenv.config();
 const app = express();
 app.use(cors({
@@ -57,7 +58,6 @@ const startServer = async () => {
     await mongoose.connect(mongo_url);
     console.log(" Connected successfully");
     console.log(" Connected to DB:", mongoose.connection.name);
-
     app.listen(port, () => {
       console.log(` Listening on port ${port}`);
     });
