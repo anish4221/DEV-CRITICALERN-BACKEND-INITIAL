@@ -9,6 +9,7 @@ import articleRoutes from './routes/article.routes.js'
 import articleContentRoutes from './routes/articleContent.routes.js'
 import articleImageRoutes from './routes/articleImage.routes.js'
 import articleCoverRoutes from './routes/articleCover.routes.js'
+import newsRoutes from './routes/news.routes.js'
 import contactus from './routes/contact.routes.js'
 import { requestLogger } from './middleware/logging.js';
 
@@ -42,7 +43,8 @@ app.use("/api/articles", articleRoutes);
 app.use("/api/articles", articleContentRoutes);
 app.use("/api/articles", articleImageRoutes);
 app.use("/api/articles", articleCoverRoutes);
-app.use("/api",contactus);
+app.use("/api/news", newsRoutes);
+app.use("/api", contactus);
 
 cloudinary.config({
  cloud_name:process.env.CLOUD_NAME,

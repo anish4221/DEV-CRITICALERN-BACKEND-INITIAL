@@ -78,20 +78,11 @@ export const SaveContactUs = async (req, res) => {
     const savedContact = await contact.save();
     if (savedContact) {
       console.log("its now saved");
-      await emailQueue.add(
-        "sendContactEmail",
-        {
-          to: EmailAddress,
-          subject: `Thank you for reaching out, ${FullName} — we'll respond shortly`,
-          html: emailHtml,
-        },
-        {
-          removeOnComplete: true, // ← Remove immediately after completion
-          removeOnFail: false,
-        },
-      );
-      const completedJobs = await emailQueue.getCompleted();
-      console.log("Completed jobs:", completedJobs);
+      await emailQueue.add("sendContactEmail", {
+        to: EmailAddress,
+        subject: `Thank you for reaching out, ${FullName} — we'll respond shortly`,
+        html: emailHtml,
+      });
       res.status(201).json({
         success: true,
         message: "Contact information saved successfully",

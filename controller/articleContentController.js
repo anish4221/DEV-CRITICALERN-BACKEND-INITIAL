@@ -13,3 +13,11 @@ export const saveContent = async (req, res) => {
 
   res.json({ message: "Content saved successfully" });
 };
+export const getContent = async (req, res) => {
+  const article = req.article;
+
+  const articleContent = await ArticleContent.findById(article.contentId);
+
+  res.json({ content: articleContent.content, version: articleContent.version });
+};
+

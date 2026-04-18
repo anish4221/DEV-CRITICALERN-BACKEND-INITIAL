@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { trim } from "validator";
+
 
 const newsSchema = new mongoose.Schema({
     author:{

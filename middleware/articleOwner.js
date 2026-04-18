@@ -2,6 +2,7 @@ import Article from "../model/Article/Article.js";
 
 export const isArticleOwner = async (req, res, next) => {
   const { articleId } = req.params;
+  console.log("Checking article ownership for article ID:", articleId);
 
   // article fetch
   const article = await Article.findById(articleId);

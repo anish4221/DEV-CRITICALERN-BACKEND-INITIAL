@@ -64,19 +64,18 @@ export const createNewsImage = async (req, res) => {
         }
 
         // Check if only 1 image is uploaded
-        if (!req.files || req.files.length === 0) {
-            return res.status(400).json({ 
-                success: false,
-                error: "Image file is required" 
-            });
-        }
+        if (!req.file) {
+      return res.status(400).json({
+        message: "Cover image file is required",
+      });
+    }
 
-        if (req.files.length > 1) {
-            return res.status(400).json({ 
-                success: false,
-                error: "Only one image allowed per news article" 
-            });
-        }
+        // if (req.file.length > 1) {
+        //     return res.status(400).json({ 
+        //         success: false,
+        //         error: "Only one image allowed per news article" 
+        //     });
+        // }
 
         // Check if image already exists for this news
         const existingImage = await NewsImage.findOne({ newsId });
@@ -87,7 +86,7 @@ export const createNewsImage = async (req, res) => {
             });
         }
 
-        const file = req.files[0];
+        const file = req.file; // multer single file upload middleware
 
         // Upload to Cloudinary
         const uploadResult = await new Promise((resolve, reject) => {
