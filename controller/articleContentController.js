@@ -1,4 +1,5 @@
 import ArticleContent from "../model/Article/ArticleContent.js";
+import Article from "../model/Article/Article.js";
 
 export const saveContent = async (req, res) => {
   const article = req.article;
@@ -16,8 +17,35 @@ export const saveContent = async (req, res) => {
 export const getContent = async (req, res) => {
   const article = req.article;
 
-  const articleContent = await ArticleContent.findById(article.contentId);
+  //const articleContent = await ArticleContent.findById(article.contentId);
+  const articleContent = await ArticleContent.aggregate([
+    { $match: { articleId: article._id } },
+    {
+      $lookup: {
+        from: "articles",
+        localField: "articleId",
+        foreignField: "_id",
+        as: "article",
+      },
+    },
 
-  res.json({ content: articleContent.content, version: articleContent.version });
+    { $unwind: "$article" },
+    {
+      $project: {
+        title: "$article.title",
+        content: 1,
+        version: 1,
+      },
+    },
+  ]); 
+
+  res.json({
+      success: true,
+      message: "Content retrieved successfully",
+      data: articleContent
+  });
 };
+
+
+
 
