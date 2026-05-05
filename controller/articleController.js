@@ -3,7 +3,8 @@ import ArticleContent from "../model/Article/ArticleContent.js";
 import ArticleCoverImage from "../model/Article/ArticleCoverImage.js";
 import ArticleImage from "../model/Article/ArticleImage.js";
 import mongoose from "mongoose";
-
+import NodeCache from "node-cache";
+const cache = new NodeCache({ stdTTL: 300 }); // Cache for 5 minutes
 export const createArticle = async (req, res) => {
   try {
     const { title, slug, description, category, tags,name } = req.body;
@@ -63,6 +64,12 @@ export const publishArticle = async (req, res) => {
 
 export const getLatestCoverArticles = async (req, res) => {
   try {
+    //const cache = new NodeCache({ stdTTL: 300 }); // Cache for 5 minutes
+    const cachedkey = "latest_cover_articles";
+    const cachedData = cache.get(cachedkey);
+    if (cachedData) {
+      return res.json(cachedData);
+    }
     const totalArticles = await Article.countDocuments({ isPublished: true });
     console.log("Total published articles:", totalArticles);
     const page = parseInt(req.query.page) || 1;
@@ -115,6 +122,12 @@ export const getLatestCoverArticles = async (req, res) => {
       totalPages: Math.ceil(total / limit),
       data: articles
     });
+    cache.set(cachedkey, {
+      success: true,
+      totalPages: Math.ceil(total / limit),
+      data: articles,
+      message: "cached data"
+    });
 
 
   } catch (error) {res.status(500).json({
@@ -126,6 +139,13 @@ export const getLatestCoverArticles = async (req, res) => {
 
 export const getArticleBySlug = async (req, res) => {
   const { slug } = req.params;
+  const cacheKey = `article_${slug}`;
+  const cachedArticle = cache.get(cacheKey);
+
+  if (cachedArticle) {
+    console.log("Serving from cache");
+    return res.json(cachedArticle);
+  }
 
   const article = await Article.aggregate([
     { $match: { slug } },
@@ -161,6 +181,7 @@ export const getArticleBySlug = async (req, res) => {
   ]);
 
   res.json(article[0]);
+  cache.set(cacheKey, article[0]);
 };
 
 export const searchArticles = async (req, res) => {
@@ -298,5 +319,29 @@ export const getArticle = async (req, res) => {
       success: false,
       message: error.message
     });
+  }
+};
+
+export const deleteArticle = async (req, res) => {
+  const session = await mongoose.startSession();
+  
+  try {
+    await session.startTransaction();
+    
+    const article = req.article;
+    
+    await Article.findByIdAndDelete(article._id, { session });
+    await ArticleContent.findOneAndDelete({ articleId: article._id }, { session });
+    await ArticleCoverImage.findOneAndDelete({ articleId: article._id }, { session });
+    await ArticleImage.deleteMany({ articleId: article._id }, { session });
+
+    await session.commitTransaction();
+    
+    res.json({ success: true, message: "Article deleted successfully" });
+  } catch (error) {
+    await session.abortTransaction();
+    res.status(500).json({ success: false, message: error.message });
+  } finally {
+    session.endSession();
   }
 };

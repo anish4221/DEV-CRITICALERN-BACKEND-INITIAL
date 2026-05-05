@@ -83,11 +83,14 @@ export const SaveContactUs = async (req, res) => {
         subject: `Thank you for reaching out, ${FullName} — we'll respond shortly`,
         html: emailHtml,
       });
+
+      setTimeout(() => {
       res.status(201).json({
         success: true,
         message: "Contact information saved successfully",
         data: savedContact,
       });
+    }, 4000);
     }
   } catch (error) {
     console.error("Error saving contact information:", error);

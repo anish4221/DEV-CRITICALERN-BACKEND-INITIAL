@@ -10,6 +10,7 @@ import {
   getArticle,
   searchArticles
 } from "../controller/articleController.js";
+import { deleteArticle } from "../controller/articleController.js";
 
 const router = express.Router();
 
@@ -40,6 +41,9 @@ router.get("/coverArticle",getLatestCoverArticles );
 
 //  Get article by slug (public)
 router.get("/:slug", getArticleBySlug);
+
+// Delete article
+router.post("/:articleId/delete", authenticate, isArticleOwner, deleteArticle);
 
 
 export default router;
