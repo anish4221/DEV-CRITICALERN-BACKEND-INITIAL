@@ -5,7 +5,7 @@ pipeline {
     IMAGE_NAME = "criticalerb_backend_blog"
     VERSION = "${BUILD_NUMBER}"
     CONTAINER_NAME = "criticalerb_backend_blog"
-    PORT = "3290"
+    PORT = "3300"
     DOCKER = "sudo docker"
 
     GIT_CREDENTIALS_ID = "criticalernblogbackend"
