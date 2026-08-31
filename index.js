@@ -36,6 +36,12 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 app.use(requestLogger);
+app.get("/health", (req, res) => {
+    res.status(200).json({
+        success: true,
+        message: "Server is healthy"
+    });
+});
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/api/auth", authRoutes);
