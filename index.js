@@ -12,6 +12,9 @@ import articleCoverRoutes from './routes/articleCover.routes.js'
 import newsRoutes from './routes/news.routes.js'
 import contactus from './routes/contact.routes.js'
 import { requestLogger } from './middleware/logging.js';
+import visitors from './routes/visitors.routes.js'
+import sequelize from './config/PgDatabase.js';
+import feedform from './routes/FeedBackForm.routes.js'
 
 
 dotenv.config();
@@ -51,12 +54,28 @@ app.use("/api/articles", articleImageRoutes);
 app.use("/api/articles", articleCoverRoutes);
 app.use("/api/news", newsRoutes);
 app.use("/api", contactus);
+app.use("/api", visitors);
+app.use("/form", feedform);
+
 
 cloudinary.config({
  cloud_name:process.env.CLOUD_NAME,
  api_key:process.env.CLOUDINARY_API_KEY,
  api_secret:process.env.CLOUDINARY_API_SECRET
 })
+
+async function connectDB() {
+  try {
+    await sequelize.authenticate();
+    console.log("✅ PostgreSQL connected successfully");
+    console.log(`   Database : ${process.env.DB_NAME}`);
+    console.log(`   Schema   : ${process.env.DB_SCHEMA}`);
+    await sequelize.createSchema(process.env.DB_SCHEMA, { ifNotExists: true });
+    console.log("✅ schema created/verified");
+  } catch (error) {
+    console.error("❌ PostgreSQL connection failed:", error.message);
+  }
+}
 
 const port = process.env.PORT;
 const mongo_url = process.env.MONGO_URL;
@@ -66,8 +85,11 @@ const startServer = async () => {
     await mongoose.connect(mongo_url);
     console.log(" Connected successfully");
     console.log(" Connected to DB:", mongoose.connection.name);
+    await connectDB();
     app.listen(port, () => {
       console.log(` Listening on port ${port}`);
+
+    
     });
 
   } catch (error) {
