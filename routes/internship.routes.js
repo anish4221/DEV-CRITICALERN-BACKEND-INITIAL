@@ -1,9 +1,9 @@
 import express from "express";
 import { authenticate } from "../middleware/auth.js";
-import { addInternshipLink, getInternshipLinks } from "../controller/internshipController.js";
+import {addOpportunityLink, getOpportunities} from "../controller/Internship/LinksAdditions.js";
 
 const router = express.Router();
 
-router.post("/internship-links", authenticate, addInternshipLink);
-router.get("/internship-links", authenticate, getInternshipLinks);
+router.post("/internship-links", authenticate, addOpportunityLink);
+router.get("/getinternship-links", getOpportunities);
 export default router;

@@ -1,5 +1,6 @@
 import {DataTypes} from "sequelize";
-import { sequelize } from "../../config/PgDatabase.js";
+import sequelize from "../../config/PgDatabase.js";
+
 // Table 1: Current Status (Sirf 1 row jo overwrite hogi)
 const FormStatus = sequelize.define('FormStatus', {
   id: {
@@ -11,6 +12,26 @@ const FormStatus = sequelize.define('FormStatus', {
     type: DataTypes.BOOLEAN,
     allowNull: false,
     defaultValue: false,
+  },
+  organization: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    defaultValue: null,
+  },
+  organizationCode: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    defaultValue: null,
+  },
+  formName: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    defaultValue: null,
+  },
+  subFormName: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    defaultValue: null,
   },
   lastUpdatedByName: {
     type: DataTypes.STRING,
@@ -24,7 +45,8 @@ const FormStatus = sequelize.define('FormStatus', {
     type: DataTypes.STRING,
     allowNull: false,
   },
-}, {
+},
+ {
   tableName: 'form_status',
   timestamps: true, // updatedAt me last update ka exact time aayega
 });

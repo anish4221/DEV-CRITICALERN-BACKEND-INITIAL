@@ -4,21 +4,34 @@ import sequelize from "../../config/PgDatabase.js";
 
 const updateFormStatus = async (req, res) => {
   try {
-    const userInfo = req.authenticate;
-    const { status } = req.body;
+    const userInfo = req.user;
+    const { status, organization, organizationCode, formName, subFormName } = req.body;
     const ipAddress =
       req.ip ||
       req.connection?.remoteAddress ||
       req.headers["x-forwarded-for"] ||
       req.socket?.remoteAddress;
 
+    console.log("IP Address:", ipAddress);
     console.log("User Info:", userInfo);
     console.log("Form Status:", status);
+    console.log("Organization:", organization);
+    console.log("Organization Code:", organizationCode);
+    console.log("Form Name:", formName);
+    console.log("Sub Form Name:", subFormName);
 
     if (status === undefined || typeof status !== "boolean") {
       return res.status(400).json({ error: "Invalid status value" });
     }
-    if (!userInfo || !userInfo.isAdmin) {
+
+    // Agar form open (status: true) kiya ja raha hai, toh organization dena mandatory hai
+    if (status === true && (!organization || !organization.trim())) {
+      return res
+        .status(400)
+        .json({ error: "Organization name is required when opening the form." });
+    }
+
+    if (!userInfo) {
       return res.status(403).json({ error: "Unauthorized access" });
     }
 
@@ -26,10 +39,19 @@ const updateFormStatus = async (req, res) => {
     const t = await sequelize.transaction();
 
     try {
+      const activeOrg = status ? organization.trim() : null;
+      const activeOrgCode = status && organizationCode ? organizationCode.trim().toUpperCase() : null;
+      const activeFormName = status && formName ? formName.trim() : null;
+      const activeSubFormName = status && subFormName ? subFormName.trim() : null;
+
       // Write 1: Insert history record
       await FormStatusHistory.create(
         {
           status,
+          organization: activeOrg,
+          organizationCode: activeOrgCode,
+          formName: activeFormName,
+          subFormName: activeSubFormName,
           adminName: userInfo.name,
           adminEmail: userInfo.email,
           ipAddress,
@@ -37,16 +59,20 @@ const updateFormStatus = async (req, res) => {
         { transaction: t }
       );
 
-      // Write 2: Update the current form status
-      await FormStatus.update(
+      // Write 2: Update or Insert the current form status (id: 1)
+      await FormStatus.upsert(
         {
+          id: 1,
           status,
-          adminName: userInfo.name,
-          adminEmail: userInfo.email,
-          ipAddress,
+          organization: activeOrg,
+          organizationCode: activeOrgCode,
+          formName: activeFormName,
+          subFormName: activeSubFormName,
+          lastUpdatedByName: userInfo.name,
+          lastUpdatedByEmail: userInfo.email,
+          lastUpdatedByIp: ipAddress,
         },
         {
-          where: { id: 1 },
           transaction: t,
         }
       );
@@ -73,4 +99,23 @@ const updateFormStatus = async (req, res) => {
   }
 };
 
-export default updateFormStatus;
+const getFormStatus = async (req, res) => {
+  try {
+    const formStatus = await FormStatus.findByPk(1);
+    if (!formStatus) {
+      return res.status(404).json({ error: "Form status not found" });
+    }
+    return res.status(200).json({
+      status: formStatus.status,
+      organization: formStatus.organization,
+      organizationCode: formStatus.organizationCode,
+      formName: formStatus.formName,
+      subFormName: formStatus.subFormName,
+    });
+  } catch (error) {
+    console.error("Error retrieving form status:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export { getFormStatus, updateFormStatus };

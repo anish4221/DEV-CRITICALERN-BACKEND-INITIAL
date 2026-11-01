@@ -3,9 +3,14 @@ import NodeCache from "node-cache";
 const cache = new NodeCache({ stdTTL: 300 }); // Cache for 5 minutes
 const addInternshipLink = async (req, res) => {
     try {
-        const author = req.user._id; // Assuming you have user authentication and the user ID is available in req.user._id
-        const { link, title } = req.body;
-        const internshipLink = new InternshipLink({ author, link, title });
+        const author = req.user._id;
+        if (!author) {
+            return res.status(401).json({
+                message: "User not authenticated or user ID missing",
+            });
+        } // Assuming you have user authentication and the user ID is available in req.user._id
+        const { link, title, status } = req.body;
+        const internshipLink = new InternshipLink({ author, link, title, status });
         await internshipLink.save();
         res.status(201).json(internshipLink);
     } catch (error) {

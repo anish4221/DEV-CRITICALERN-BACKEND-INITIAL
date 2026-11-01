@@ -1,4 +1,4 @@
-import {sequelize} from "../../config/PgDatabase.js";
+import sequelize from "../../config/PgDatabase.js";
 import {DataTypes} from "sequelize";
 
 const FormStatusHistory = sequelize.define('FormStatusHistory', {
@@ -9,6 +9,22 @@ const FormStatusHistory = sequelize.define('FormStatusHistory', {
   },
   status: {
     type: DataTypes.BOOLEAN,
+    allowNull: false,
+  },
+  organization: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  organizationCode: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  formName: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  subFormName: {
+    type: DataTypes.STRING,
     allowNull: false,
   },
   adminName: {

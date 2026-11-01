@@ -15,6 +15,13 @@ const sequelize = new Sequelize(
     port: parseInt(process.env.DB_PORT) || 5432,
     dialect: "postgres",
 
+    dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false,
+      },
+    },
+
     define: {
       schema: process.env.DB_SCHEMA || "Form",
     },

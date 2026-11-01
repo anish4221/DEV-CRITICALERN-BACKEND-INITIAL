@@ -15,7 +15,12 @@ import { requestLogger } from './middleware/logging.js';
 import visitors from './routes/visitors.routes.js'
 import sequelize from './config/PgDatabase.js';
 import feedform from './routes/FeedBackForm.routes.js'
-
+import './model/Pgmodel/FeedBackStatus.js';
+import './model/Pgmodel/FeedBackFormHistory.js';
+import './model/Pgmodel/FeedFormStore.js';
+import './model/Pgmodel/Formquestion.js';
+import './utils/feedbackQueue.js';
+import internship from './routes/internship.routes.js'
 
 dotenv.config();
 const app = express();
@@ -37,8 +42,8 @@ const limiter = rateLimit({
     });
   },
 });
-app.use(limiter);
-app.use(requestLogger);
+// app.use(limiter);
+// app.use(requestLogger);
 app.get("/health", (req, res) => {
     res.status(200).json({
         success: true,
@@ -55,7 +60,8 @@ app.use("/api/articles", articleCoverRoutes);
 app.use("/api/news", newsRoutes);
 app.use("/api", contactus);
 app.use("/api", visitors);
-app.use("/form", feedform);
+app.use("/api", feedform);
+app.use("/api", internship);
 
 
 cloudinary.config({
@@ -72,6 +78,10 @@ async function connectDB() {
     console.log(`   Schema   : ${process.env.DB_SCHEMA}`);
     await sequelize.createSchema(process.env.DB_SCHEMA, { ifNotExists: true });
     console.log("✅ schema created/verified");
+
+    // Auto-create/sync PostgreSQL tables (alter: true ensures new columns like organization are added to existing tables)
+    await sequelize.sync({ alter: true });
+    console.log("✅ PostgreSQL tables synced");
   } catch (error) {
     console.error("❌ PostgreSQL connection failed:", error.message);
   }

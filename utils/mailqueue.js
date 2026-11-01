@@ -106,4 +106,47 @@ visitorWorker.on('failed', (job, err) => {
     console.error(`Visitor job ${job.id} failed with error:`, err);
 });
 
+
+// const EmailService = new Queue('EmailServiceQueue', {
+//     connection,
+//     defaultJobOptions: {
+//         removeOnComplete: true,
+//         removeOnFail: false,
+//         attempts: 3,
+//     },
+//     streams: {
+//         events: {
+//             maxLen: 20,
+//         },
+//     },
+// });
+// const emailServiceWorker = new Worker(
+//     'EmailServiceQueue',
+//     async (job) => {
+//         const { to, subject, html, text } = job.data;
+//         console.log(`Sending email to ${to} with subject "${subject}"`);
+
+//         const mailOptions = {
+//             from: process.env.EMAIL_USER,
+//             to,
+//             subject,
+//             ...(html && { html }),
+//             ...(text && { text }),
+//         };
+
+//         await transporter.sendMail(mailOptions);
+//     },
+//     { connection }
+// );
+
+// emailServiceWorker.on('completed', (job) => {
+//     console.log(`Email job ${job.id} completed successfully.`);
+// });
+
+// emailServiceWorker.on('failed', (job, err) => {
+//     console.error(`Email job ${job.id} failed with error:`, err);
+// });
+
+
+
 export { emailQueue, visitorQueue };
